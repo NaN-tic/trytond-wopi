@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from proteus import Model, Wizard
-from trytond.modules.wopi import editor
+from trytond.modules.wopi import attachment as wopi_attachment, editor
 from trytond.tests.test_tryton import drop_db
 from trytond.tests.tools import activate_modules
 
@@ -35,7 +35,8 @@ class TestCreateOfficeDocument(unittest.TestCase):
 
         with patch.object(
                 editor, 'get_wopi_url',
-                return_value='https://tryton.example.com'):
+                return_value='https://tryton.example.com'), patch.object(
+                wopi_attachment, 'is_editable_filename', return_value=True):
             wizard = Wizard('office.document.create', config=config)
             self.assertEqual(wizard.form.template, editable_template)
             wizard.execute('create_')
@@ -54,7 +55,8 @@ class TestCreateOfficeDocument(unittest.TestCase):
         existing.save()
         with patch.object(
                 editor, 'get_wopi_url',
-                return_value='https://tryton.example.com'):
+                return_value='https://tryton.example.com'), patch.object(
+                wopi_attachment, 'is_editable_filename', return_value=True):
             wizard = Wizard(
                 'office.document.create', [existing], config=config)
             wizard.form.template = editable_template
