@@ -1,0 +1,81 @@
+Online office WOPI host for Tryton
+==================================
+
+This module exposes a WOPI host for one binary field of one Tryton record.
+It does not expose a file system, and consequently deliberately does not claim
+support for relative-file operations.  `DeleteFile` clears the binary field.
+`RenameFile` is available only if the binary field declares `filename`; it
+updates that filename field and retains its extension.
+
+Configuration
+-------------
+
+Add the following server configuration. ``[office] url`` is the only online
+office setting; it can point to either Collabora Online or ONLYOFFICE Docs.
+``[wopi] url`` must be reachable by that office server::
+
+    [office]
+    url = https://office.example.com
+    discovery_timeout = 10
+
+    [wopi]
+    url = https://tryton.example.com
+    secret = a-random-secret-with-at-least-32-bytes
+    lease_time = 1800
+    require_proof = true
+
+The ``[wopi]`` section contains the WOPI URL reachable by the online office,
+the secret and the lease time. The browser launch URL is built from
+``[web] base_url``. This allows a local browser to use ``localhost`` while a
+containerized online office uses a host-gateway address for WOPI callbacks.
+The module reads the configured server's WOPI discovery document to obtain its
+supported edit actions. It does not require a provider setting.
+When the discovery document includes ``proof-key``, the module requires and
+validates ``X-WOPI-Proof``, ``X-WOPI-ProofOld`` and ``X-WOPI-TimeStamp`` on
+every WOPI callback. Keep ``require_proof`` enabled in production. A Collabora
+installation that does not publish proof keys can set it to ``false`` as an
+explicit compatibility exception, but then network access to the WOPI routes
+must be restricted to the office server.
+
+`[wopi] secret` must be stored in the server configuration or a secret
+manager, never in the database.  Restrict the reverse proxy so only the
+configured online office can call `/<database>/wopi/`; TLS is mandatory in
+production.
+
+`lease_time` is the number of seconds that an inactive editor session remains
+valid.  Every authenticated WOPI request renews the lease.  For compatibility,
+the old `token_lifetime` setting is used as a fallback when `lease_time` is not
+set.
+
+If `[wopi] url` is not set, the module uses the first non-empty origin
+configured in `[web] cors` (or `TRYTOND_WEB__CORS`).  Set `[wopi] url`
+explicitly when the CORS list contains more than one origin or its first value
+is not Tryton's public URL.
+
+Opening an editor
+-----------------
+
+Open this authenticated Tryton URL in a new browser tab::
+
+    /<database>/wopi/open/<model>/<record>/<binary-field>?name=<filename>
+
+The previous ``/collabora/open`` launch path remains available as a
+compatibility alias.
+
+The endpoint checks model, field and record rules, reads the selected office's
+discovery document and posts to its versioned edit action.  It creates a short-lived,
+HMAC-signed capability for exactly that binary field; the browser user never
+supplies credentials to Collabora.
+
+The reusable `wopi.editor.get_editor_url()` function returns this
+launch URL.  The module also adds an `Open` button to `ir.attachment`; it
+returns an `ir.action.url`, which clients open in a new browser tab, and is
+shown only for editable formats published by the configured office server.
+
+The host implements CheckFileInfo, GetFile, PutFile, DeleteFile, RenameFile
+(where applicable), Lock, GetLock, RefreshLock, Unlock and UnlockAndRelock.
+All users opening the same record and binary field share a stable WOPI file
+identifier, which lets the selected office place them in the same co-authoring session.
+Each user still has an independent signed access token and lease.
+Permissions are rechecked on every WOPI callback, so a revoked Tryton
+permission immediately stops access.

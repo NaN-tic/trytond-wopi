@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<data>
+    <xpath expr="/form/group[@id='data_link']" position="inside">
+        <button name="open"/>
+    </xpath>
+</data>
