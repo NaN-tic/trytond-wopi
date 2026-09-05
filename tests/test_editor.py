@@ -29,10 +29,10 @@ class TestEditor(unittest.TestCase):
         self.assertTrue(url.startswith(
             'http://localhost:8023/onlyoffice/wopi/open/'))
 
-    def test_office_url_uses_office_configuration(self):
+    def test_office_url_uses_wopi_configuration(self):
         def get_config(section, option, default=None):
             values = {
-                ('office', 'url'): 'https://office.example.com',
+                ('wopi', 'office_url'): 'https://office.example.com',
                 ('wopi', 'url'): 'https://tryton.example.com',
             }
             return values.get((section, option), default)
@@ -78,10 +78,15 @@ class TestEditor(unittest.TestCase):
 
     def test_wopi_uses_dedicated_numeric_configuration(self):
         def getint(section, option, default=None):
-            values = {('wopi', 'lease_time'): 900}
+            values = {
+                ('wopi', 'discovery_timeout'): 10,
+                ('wopi', 'lease_time'): 900,
+            }
             return values.get((section, option), default)
 
         with patch.object(editor.config, 'getint', side_effect=getint):
+            self.assertEqual(
+                editor.get_office_config_int('discovery_timeout'), 10)
             self.assertEqual(editor.get_wopi_config_int('lease_time'), 900)
 
     def test_editable_formats_are_common_to_office_servers(self):

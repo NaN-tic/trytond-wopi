@@ -10,22 +10,20 @@ updates that filename field and retains its extension.
 Configuration
 -------------
 
-Add the following server configuration. ``[office] url`` is the only online
-office setting; it can point to either Collabora Online or ONLYOFFICE Docs.
-``[wopi] url`` must be reachable by that office server::
-
-    [office]
-    url = https://office.example.com
-    discovery_timeout = 10
+Add the following server configuration. ``[wopi] office_url`` can point to
+either Collabora Online or ONLYOFFICE Docs. ``[wopi] url`` must be reachable
+by that office server::
 
     [wopi]
+    office_url = https://office.example.com
+    discovery_timeout = 10
     url = https://tryton.example.com
     secret = a-random-secret-with-at-least-32-bytes
     lease_time = 1800
     require_proof = true
 
-The ``[wopi]`` section contains the WOPI URL reachable by the online office,
-the secret and the lease time. The browser launch URL is built from
+The ``[wopi]`` section contains the online office URL, the WOPI URL reachable
+by it, the secret and the lease time. The browser launch URL is built from
 ``[web] base_url``. This allows a local browser to use ``localhost`` while a
 containerized online office uses a host-gateway address for WOPI callbacks.
 The module reads the configured server's WOPI discovery document to obtain its
