@@ -14,12 +14,12 @@ class OfficeDiscoveryError(Exception):
 
 def get_office_url():
     """Return the URL of the single configured online office server."""
-    return config.get('office', 'url', default=None)
+    return config.get('wopi', 'office_url', default=None)
 
 
 def get_office_config_int(option, default=None):
     """Return an integer setting for the configured online office server."""
-    return config.getint('office', option, default=default)
+    return config.getint('wopi', option, default=default)
 
 
 def get_wopi_config(option, default=None):
