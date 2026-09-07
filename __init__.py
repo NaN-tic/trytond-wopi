@@ -12,5 +12,6 @@ def register():
         lock.WopiLock,
         module='wopi', type_='model')
     Pool.register(
+        office.AttachmentCategoryOpen,
         office.DocumentCreate,
         module='wopi', type_='wizard', depends=['office'])
