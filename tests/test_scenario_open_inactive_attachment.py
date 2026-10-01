@@ -29,7 +29,9 @@ class TestOpenInactiveAttachment(unittest.TestCase):
         User = Model.get('res.user', config=config)
         attachment = Attachment(
             name='document.odt', type='data', data=b'document',
-            resource=User(config.user), active=False)
+            resource=User(config.user))
+        attachment.save()
+        attachment.active = False
         attachment.save()
         user = User(config.user)
         user.password = 'collabora-test-password'
